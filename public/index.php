@@ -1,12 +1,12 @@
 <?php
 $root_path = dirname(dirname(__FILE__));
-require_once $root_path . '/lib.php';
+require_once $root_path . '/src/lib.php';
 
 set_error_handler('handle_error');
 set_time_limit(0);
 ignore_user_abort(true);
 
-$config_path = $root_path . '/config.php';
+$config_path = $root_path . '/config/relay.php';
 $config = file_exists($config_path) ? require($config_path) : [];
 $config = array_merge([
     'http_host' => $_ENV['HTTP_HOST'] ?? $_SERVER['HTTP_HOST'],
@@ -14,7 +14,7 @@ $config = array_merge([
     'base'      => $_ENV['BASE'] ?? ''
 ], $config);
 
-$pkey_path = $root_path . '/key.pem';
+$pkey_path = $root_path . '/config/key.pem';
 if (isset($config['pkey'])) {
     $pkey = openssl_pkey_get_private($config['pkey']);
 } else if (file_exists($pkey_path)) {
@@ -35,8 +35,10 @@ switch ($path) {
                 $_POST = $post_data;
             }
         }
-        send_response(handle_index_request(), 'application/json');
+        $tokens = load_tokens($root_path . '/config/tokens.php');
+        send_response(handle_index_request($tokens), 'application/json');
         break;
+
     case '/inbox':
         requires_method('POST');
         if (!$activity = build_activity()) {
@@ -48,11 +50,12 @@ switch ($path) {
         }
         send_response((object) []);
         break;
+
     case '/actor':
-        trigger_error('test');
         requires_method('GET');
         send_response(actor_content());
         break;
+
     case '/.well-known/webfinger':
         requires_method('GET');
         $resource = $_GET['resource'] ?? null;
@@ -62,6 +65,7 @@ switch ($path) {
             send_error('user not found', 404);
         }
         break;
+
     default:
         send_error('not found', 404);
 }

@@ -1,5 +1,5 @@
 <?php
-require_once 'lib.php';
+require_once 'src/lib.php';
 
 if (!isset($argc) || $argc < 3) {
 	error_log(print_r(getallheaders(), true));

@@ -125,8 +125,7 @@ function handle_follow_request($activity) {
     ], $tls);
 }
 
-function load_tokens() {
-    $tokens_path = dirname(__FILE__) . '/tokens.php';
+function load_tokens($tokens_path) {
     if (file_exists($tokens_path)) {
         return require($tokens_path);
     } else {
@@ -134,8 +133,7 @@ function load_tokens() {
     }
 }
 
-function handle_index_request() {
-    $tokens = load_tokens();
+function handle_index_request($tokens) {
     $headers = array_change_key_case(getallheaders(), CASE_LOWER);
     $token = array_key_exists('authorization', $headers) ? trim($headers['authorization']) : '';
     $token = ltrim(substr($token, strpos($token, 'Bearer ') + 7));

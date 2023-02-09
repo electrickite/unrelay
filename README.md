@@ -5,19 +5,19 @@ This is a PHP reimplementation of the core of Gervasio Marchand's FakeRelay.
 
 ## Requirements
 
-  * PHP 8.2
+  * PHP 8
   * cURL extension
   * OpenSSL extension
 
 ## Configure
 
 The application will choose sensible defaults, but configuration can be
-provided by creating a `config.php` file in the project root, or by passing
-configuration in environment variables.
+provided by creating a `config/relay.php` file in the project root, or by
+passing configuration in environment variables.
 
 The server private key will be automatically generated on first use. The key
-will also be read from `key.pem` in the project root if it exists, or from
-`config.php`.
+will also be read from `config/key.pem` in the project root if it exists, or
+from `config/relay.php`.
 
 ## Run locally
 
