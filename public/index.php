@@ -1,5 +1,5 @@
 <?php
-$root_path = dirname(dirname(__FILE__));
+$root_path = dirname(__FILE__, 2);
 require_once $root_path . '/src/lib.php';
 
 set_error_handler('handle_error');

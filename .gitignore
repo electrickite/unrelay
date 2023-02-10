@@ -1,3 +1,4 @@
 config/relay.php
 config/tokens.php
 config/key.pem
+db/*.sqlite3

@@ -1,5 +1,17 @@
 <?php
 
+$rules = [];
+
+function init_db($db) {
+    $db->exec("CREATE TABLE IF NOT EXISTS statuses (
+               url TEXT NOT NULL,
+               host TEXT NOT NULL,
+               indexed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+               PRIMARY KEY (url, host))");
+    $db->exec("CREATE INDEX IF NOT EXISTS
+               indexed_idx ON statuses (indexed_at)");
+}
+
 function send_request($url, $method="GET", $data=[], $headers=[]) {
     $headers = array_merge(['User-Agent: UnRelay'], $headers);
 
@@ -21,11 +33,16 @@ function send_request($url, $method="GET", $data=[], $headers=[]) {
     return $response;
 }
 
-function readRobotsTxt($host, &$rules) {
+function host_scheme($host) {
+    $hostname = strstr($host, ':', true);
+    return ($hostname != 'localhost') ? 'https' : 'http';
+}
+
+function read_robots_txt($host, &$rules) {
     if (array_key_exists($host, $rules)) return;
     $rules[$host]['disallow'] = [];
 
-    $url = 'https://' . $host . '/robots.txt';
+    $url = host_scheme($host) . '://' . $host . '/robots.txt';
     $content = send_request($url);
     if ($content === false) return;
 
@@ -49,8 +66,9 @@ function readRobotsTxt($host, &$rules) {
     }
 }
 
-function pathAllowed($host, $path, &$rules) {
-    readRobotsTxt($host, $rules);
+function path_allowed($host, $path) {
+    static $rules = [];
+    read_robots_txt($host, $rules);
 
     $allowed = true;
     foreach ($rules[$host]['disallow'] as $prefix) {
@@ -70,7 +88,21 @@ function pathAllowed($host, $path, &$rules) {
     return $allowed;
 }
 
-$rules = [];
-$allowed = pathAllowed($argv[1], $argv[2], $rules);
-$msg = $allowed ? 'allow' : 'disallow';
-echo "{$argv[1]} {$argv[2]} $msg\n";
+function fetch_tags($instance, $tag) {
+    $path = "/tags/{$tag}.json";
+    $url = host_scheme($instance) . "://{$instance}/tags/{$tag}.json";
+    if (path_allowed($instance, $path)) {
+        echo "Fetching {$tag} from ${instance}";
+        $tags = json_decode(send_request($url));
+    } else {
+        echo "Fetching {$url} from ${instance} not allowed by robots.txt";
+        return false;
+    }
+
+    if ($tags === false) {
+        echo "Error fetching tags from {$url}";
+        return false;
+    }
+    print_r($tags);
+    return $tags;
+}

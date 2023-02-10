@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+$root_path = dirname(__FILE__, 2);
+require_once $root_path . '/src/fetch.php';
+set_time_limit(0);
+
+// $rules = [];
+// $allowed = pathAllowed($argv[1], $argv[2], $rules);
+// $msg = $allowed ? 'allow' : 'disallow';
+// echo "{$argv[1]} {$argv[2]} $msg\n";
+
+if (!isset($argc) || $argc < 2) {
+    error_log('Usage: ' . basename(__FILE__) . ' COMMAND [ARG...]');
+    exit(1);
+}
+
+$db_path = $root_path . '/db/fetch.sqlite3';
+$db = new PDO('sqlite:' . $db_path);
+
+switch ($argv[1]) {
+    case 'init':
+        echo "Intializing database at: {$db_path}\n";
+        init_db($db);
+        break;
+    case 'fetch':
+        fetch_tags('mastodon.social', 'mastodon');
+        break;
+    default:
+        error_log('Unrecognized command');
+        exit(1);
+}
